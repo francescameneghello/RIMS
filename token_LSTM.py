@@ -28,8 +28,8 @@ class Token(object):
             data = json.load(file)
             self.ac_index = data['ac_index']
 
-    def simulation(self, env: simpy.Environment, writer, type):
-        trans = self.next_transition()
+    def simulation(self, env: simpy.Environment, writer, type, syn=False):
+        trans = self.next_transition(syn)
         ### register trace in process ###
         resource_trace = self.process.get_resource_trace()
         resource_trace_request = resource_trace.request()
@@ -95,14 +95,14 @@ class Token(object):
                     self.see_activity = True
 
             self.update_marking(trans)
-            trans = self.next_transition()
+            trans = self.next_transition(syn)
 
         resource_trace.release(resource_trace_request)
 
     def update_marking(self, trans):
         self.am = semantics.execute(trans, self.net, self.am)
 
-    def next_transition(self):
+    def next_transition(self, syn):
         all_enabled_trans = semantics.enabled_transitions(self.net, self.am)
         all_enabled_trans = list(all_enabled_trans)
         all_enabled_trans.sort(key=lambda x: x.name)
@@ -110,16 +110,17 @@ class Token(object):
         if len(all_enabled_trans) == 0:
             return None
         elif len(all_enabled_trans) > 1:
-            #prob = [0.50, 0.50]
-            #if label_element in ['exi_node_54ded9af-1e77-4081-8659-bd5554ae9b9d', 'exi_node_38c10378-0c54-4b13-8c4c-db3e4d952451', 'exi_node_52e223db-6ebf-4cc7-920e-9737fe97b655', 'exi_node_e55f8171-c3fc-4120-9ab1-167a472007b7']:
-            #    prob = [0.01, 0.99]
-            #elif label_element in ['exi_node_7af111c0-b232-4481-8fce-8d8278b1cb5a']:
-            #    prob = [0.99, 0.01]
-            #value = [*range(0, len(prob), 1)]
-            #next = int(random.choices(value, prob)[0])
-            next = random.choices(list(range(0, len(all_enabled_trans), 1)))[0]
+            if syn:
+                prob = [0.50, 0.50]
+                if label_element in ['exi_node_54ded9af-1e77-4081-8659-bd5554ae9b9d', 'exi_node_38c10378-0c54-4b13-8c4c-db3e4d952451', 'exi_node_52e223db-6ebf-4cc7-920e-9737fe97b655', 'exi_node_e55f8171-c3fc-4120-9ab1-167a472007b7']:
+                    prob = [0.01, 0.99]
+                elif label_element in ['exi_node_7af111c0-b232-4481-8fce-8d8278b1cb5a']:
+                    prob = [0.99, 0.01]
+                value = [*range(0, len(prob), 1)]
+                next = int(random.choices(value, prob)[0])
+            else:
+                next = random.choices(list(range(0, len(all_enabled_trans), 1)))[0]
             return all_enabled_trans[next]
-            #return self.compute_probability(label_element, all_enabled_trans)
         else:
             return all_enabled_trans[0]
 

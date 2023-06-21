@@ -36,7 +36,7 @@ def setup(env: simpy.Environment, NAME_EXPERIMENT, params, i, type):
     if type == 'rims':
         path_result = NAME_EXPERIMENT + '/results/rims/simulated_log_LSTM_' + NAME_EXPERIMENT + str(i) + '.csv'
     else:
-        path_result = NAME_EXPERIMENT + '/results/rims_plus/simulated_log_LSTM_' + NAME_EXPERIMENT + str(i) + 'aaa.csv'
+        path_result = NAME_EXPERIMENT + '/results/rims_plus/simulated_log_LSTM_' + NAME_EXPERIMENT + str(i) + '.csv'
     f = open(path_result, 'w')
 
     writer = csv.writer(f)
@@ -47,6 +47,7 @@ def setup(env: simpy.Environment, NAME_EXPERIMENT, params, i, type):
         interval = (next - prev).total_seconds()
         prev = next
         yield env.timeout(interval)
+        ## in case of SynLoan, and L1_syn, .... L6_syn, set simulation input as: (env, writer, type aand True)
         env.process(Token(i, params, simulation_process, params).simulation(env, writer, type))
 
 
