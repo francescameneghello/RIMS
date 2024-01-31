@@ -42,6 +42,9 @@ class SimulationProcess(object):
             occup.append(self.resource[resource].get_resource().count / self.resource[resource].capacity)
         return occup
 
+    def get_occupations_single_resource(self, resource):
+        return self.resource[resource].get_resource().count / self.resource[resource].capacity
+
     def get_resource(self, resource_label):
         return self.resource[resource_label] ### ritorna tipo resource mio
 

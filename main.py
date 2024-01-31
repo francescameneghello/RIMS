@@ -7,6 +7,7 @@ from MAINparameters import Parameters
 import sys, getopt
 import warnings
 from os.path import exists
+from scipy.stats import truncnorm
 from evaluate import *
 
 
@@ -27,7 +28,7 @@ def main(argv):
                 N_SIMULATION = 25
     print(NAME_EXPERIMENT, N_SIMULATION, type)
     run_simulation(NAME_EXPERIMENT, N_SIMULATION, type)
-    evaluation_sim(NAME_EXPERIMENT, type)
+    #evaluation_sim(NAME_EXPERIMENT, type)
 
 
 def setup(env: simpy.Environment, NAME_EXPERIMENT, params, i, type):
@@ -40,15 +41,18 @@ def setup(env: simpy.Environment, NAME_EXPERIMENT, params, i, type):
     f = open(path_result, 'w')
 
     writer = csv.writer(f)
-    writer.writerow(['caseid', 'task', 'start:timestamp', 'time:timestamp', 'role', 'st_wip', 'st_tsk_wip', 'queue'])
+    writer.writerow(['caseid', 'task', 'start:timestamp', 'time:timestamp', 'role', 'st_wip', 'st_tsk_wip', 'queue', 'attrib'])
     prev = params.START_SIMULATION
     for i in range(1, len(params.ARRIVALS) + 1):
+    #for i in range(1, 20):
         next = datetime.strptime(params.ARRIVALS.loc[i - 1].at["timestamp"], '%Y-%m-%d %H:%M:%S')
         interval = (next - prev).total_seconds()
         prev = next
         yield env.timeout(interval)
         ## in case of SynLoan, and L1_syn, .... L6_syn, set simulation input as: (env, writer, type aand True)
-        env.process(Token(i, params, simulation_process, params).simulation(env, writer, type))
+        #attrib = {'AMOUNT_REQ': np.random.exponential(14451.15378365831, 1)[0]} ### BPI12
+        #attrib = {'AMOUNT_REQ': truncnorm(-1.0679997306395121, 79.90241199335686, loc=15163.62, scale=12325.49).rvs()} ### SynLoan
+        env.process(Token(i, params, simulation_process, {}, NAME_EXPERIMENT).simulation(env, writer, type))
 
 
 def run_simulation(NAME_EXPERIMENT, N_SIMULATION, type):
@@ -71,6 +75,5 @@ def run_simulation(NAME_EXPERIMENT, N_SIMULATION, type):
 if __name__ == "__main__":
     warnings.filterwarnings("ignore")
     main(sys.argv[1:])
-
 
 
